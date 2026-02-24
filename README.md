@@ -24,7 +24,6 @@ Frontend:
   - błąd
   - brak wyniku
 
----
 
 ## Technologie
 
@@ -35,7 +34,6 @@ Frontend:
 - REST API
 - Obsługa statusów HTTP
 
----
 
 ## Jak uruchomić
 
