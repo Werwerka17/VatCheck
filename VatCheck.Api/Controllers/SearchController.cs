@@ -10,11 +10,11 @@ namespace VatCheck.Api.Controllers
     [Route("api/search")]
     public class SearchController : ControllerBase
     {
-        private readonly WhitelistService _service;
+        private readonly WhitelistService _whitelistService;
 
-        public SearchController(WhitelistService service) 
+        public SearchController(WhitelistService whitelistService) 
         {
-            _service = service;
+            _whitelistService = whitelistService;
         }
 
         [HttpGet("nip/{nip}")]
@@ -24,15 +24,14 @@ namespace VatCheck.Api.Controllers
             {
                 return BadRequest("NIP jest wymagany!");
             }
-
-            if (nip.Length != 10 || !nip.All(char.IsDigit))
+            else if (nip.Length != 10 || !nip.All(char.IsDigit))
             {
                 return BadRequest("NIP musi mieć 10 cyfr!");
             }
 
             try
             {
-                var company = await _service.GetByNipAsync(nip, ct);
+                var company = await _whitelistService.GetByNipAsync(nip, ct);
 
                 if (company is null)
                     return NotFound("Nie znaleziono podmiotu dla podanego NIP.");
@@ -45,7 +44,7 @@ namespace VatCheck.Api.Controllers
             }
             catch (HttpRequestException)
             {
-                return StatusCode(502, "Usługa MF chwilowo nie odpowiada. Spróbuj ponownie za chwilę.");
+                return StatusCode(502, "Usługa chwilowo nie odpowiada. Spróbuj ponownie za chwilę.");
             }
 
 

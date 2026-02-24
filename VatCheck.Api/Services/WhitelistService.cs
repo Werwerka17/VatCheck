@@ -24,17 +24,10 @@ namespace VatCheck.Api.Services
 
             if (response.StatusCode == HttpStatusCode.NotFound)
                 return null;
-
-            
-            if (response.StatusCode == HttpStatusCode.BadRequest)
-            {
+            else if (response.StatusCode == HttpStatusCode.BadRequest)
                 throw new HttpRequestException("Nieprawidłowy NIP.", null, HttpStatusCode.BadRequest);
-            }
-
-            if (!response.IsSuccessStatusCode)
-            {
-                throw new HttpRequestException("Błąd po stronie MF.", null, HttpStatusCode.BadGateway);
-            }
+            else if (!response.IsSuccessStatusCode)
+                throw new HttpRequestException("Błąd po stronie Ministerstwa Finansów.", null, HttpStatusCode.BadGateway);
 
             var whitelistResponse = await response.Content.ReadFromJsonAsync<WhitelistResponse>(cancellationToken: ct);
 
