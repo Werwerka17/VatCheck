@@ -1,0 +1,92 @@
+﻿@page "/"
+@using System.Net
+@using System.Net.Http.Json
+@using VatCheck.UI.Models
+@inject HttpClient Http
+
+<div class="container">
+    <div class="card">
+        <h3>Sprawdź podmiot po NIP</h3>
+
+        <input placeholder="Wpisz NIP (10 cyfr)"
+               @bind="nip" />
+
+        <button @onclick="OnSearch" disabled="@isLoading">
+            Sprawdź
+        </button>
+
+        @if (isLoading)
+        {
+            <p class="info">Ładowanie...</p>
+        }
+
+        @if (!string.IsNullOrWhiteSpace(errorMessage))
+        {
+            <p class="error">@errorMessage</p>
+        }
+
+        @if (result is not null)
+        {
+            <div class="result">
+                <p><b>Nazwa:</b> @result.Name</p>
+                <p><b>NIP:</b> @result.Nip</p>
+                <p>
+                    <b>Status VAT:</b>
+                    @(result.IsActive ? "Czynny" : "Nieczynny")
+                </p>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    private string nip = string.Empty;
+    private bool isLoading = false;
+    private string? errorMessage;
+    private CompanyDto? result;
+
+    private async Task OnSearch()
+    {
+        errorMessage = null;
+        result = null;
+
+        var cleaned = nip.Trim().Replace("-", "").Replace(" ", "");
+
+        if (cleaned.Length != 10 || !cleaned.All(char.IsDigit))
+        {
+            errorMessage = "Podaj poprawny NIP: 10 cyfr.";
+            return;
+        }
+
+        isLoading = true;
+
+        try
+        {
+            result = await Http.GetFromJsonAsync<CompanyDto>($"api/search/nip/{cleaned}");
+        }
+        catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.BadRequest)
+        {
+            errorMessage = "Nieprawidłowy NIP.";
+        }
+        catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+        {
+            errorMessage = "Nie znaleziono podmiotu dla podanego NIP.";
+        }
+        catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.BadGateway)
+        {
+            errorMessage = "Usługa chwilowo nie odpowiada. Spróbuj ponownie za chwilę.";
+        }
+        catch (HttpRequestException)
+        {
+            errorMessage = "Nie udało się połączyć z backendem.";
+        }
+        catch
+        {
+            errorMessage = "Wystąpił nieoczekiwany błąd.";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+}

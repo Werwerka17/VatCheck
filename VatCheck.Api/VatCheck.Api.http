@@ -1,0 +1,6 @@
+@VatCheck.Api_HostAddress = http://localhost:5072
+
+GET {{VatCheck.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
